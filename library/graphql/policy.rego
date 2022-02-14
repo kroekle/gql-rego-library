@@ -1,10 +1,10 @@
 package global.graphql
 
 import data.dataset as schema
+import data.policy["com.styra.envoy.ingress"].rules.rules.ast_url
 
 default graphql_document = {}
 
-default ast_url = ""
 
 body = b {
   not graphql_variables
