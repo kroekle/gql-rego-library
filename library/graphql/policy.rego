@@ -135,12 +135,12 @@ schema_fields[v] {
   [_,node] = walk(schema.definitions)
   node.kind == "FieldDefinition"
   
-
    v := {
      node.name.value: {
        "type": node.type.type.name.value
      }}
 }
+
 
 query_arguments[v] {
   [_,node] = walk(ast.definitions)
@@ -174,7 +174,8 @@ query_fields[v] {
 
   [_,node] = walk(ast.definitions)
   node.name.kind == "Name"
-  node.operation == ["query", "subscription"][_]
+#  node.operation == ["query", "subscription"][_]
+  node.operation == "query"
   node.kind == "OperationDefinition"
   
   node.kind == "Field"
