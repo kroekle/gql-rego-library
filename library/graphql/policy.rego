@@ -170,15 +170,28 @@ mutation_arguments[v] {
   v := {node.name.value: args} 
 }
 
+query_definitions = d {
+  d := [d | 
+    ast.definitions[i].kind == "OperationDefinition"
+    ast.definitions[i].operation == ["query", "subscription"][_]
+    d := ast.definitions[i]
+    ]
+}
+
+mutation_definitions = d {
+  d := [d | 
+    ast.definitions[i].kind == "OperationDefinition"
+    ast.definitions[i].operation == "mutation"
+    d := ast.definitions[i]
+    ]
+}
+
 query_fields[v] {
 
-  [_,node] = walk(ast.definitions)
-  node.name.kind == "Name"
-#  node.operation == ["query", "subscription"][_]
-  node.operation == "query"
-  node.kind == "OperationDefinition"
-  
+  [_,node] = walk(query_definitions)
   node.kind == "Field"
+  node.name.kind == "Name"
+  
   sub := {name:{"__type__":get_type(node.name.value, name)} | 
     node.selectionSet.selections[i].kind == "Field"
     node.selectionSet.selections[i].name.kind == "Name"
@@ -194,12 +207,10 @@ query_fields[v] {
 
 mutation_fields[v] {
 
-  [_,node] = walk(ast.definitions)
-  node.name.kind == "Name"
-  node.operation == "mutation"
-  node.kind == "OperationDefinition"
-  
+  [_,node] = walk(mutation_definitions)
   node.kind == "Field"
+  node.name.kind == "Name"
+
   sub := {name:{"__type__":get_type(node.name.value, name)} | 
     node.selectionSet.selections[i].kind == "Field"
     node.selectionSet.selections[i].name.kind == "Name"
