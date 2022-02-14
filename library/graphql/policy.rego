@@ -4,18 +4,20 @@ import data.dataset as schema
 
 default graphql_document = {}
 
+default ast_url = ""
+
 body = b {
-  not input.attributes.request.http.headers.variables
+  not graphql_variables
   b := {"query": graphql_document}
 }
 
 body = b {
-  b := {"query": graphql_document, "variables": input.attributes.request.http.headers.variables}
+  b := {"query": graphql_document, "variables": graphql_variables}
 }
 
 ast = a {
   req := {
-    "url": "https://us-central1-new-expo.cloudfunctions.net/graphql-ast",
+    "url": ast_url,
     "method": "POST",
     "body": body,
     "headers": {"content-type":"application/json"}
@@ -29,7 +31,7 @@ graphql_variables = v {
 }
 
 graphql_variables = v {
-  v := input.parsed_query.query
+  v := input.parsed_query.variables
 }
 
 graphql_variables = v {
