@@ -6,6 +6,37 @@ default graphql_document = {}
 
 default ast_url = "http://localhost:3333"
 
+query_type(type, field) {
+
+ query_fields[i][refernece][field]
+ query_fields[i][reference][__type__] == type
+}
+
+query_reference(type, field) {
+
+ query_fields[_][type][field]
+}
+
+query_argument(reference, field, value) {
+  query_arguments[_][reference][field] == value
+}
+
+mutate_type(type, field) {
+
+ mutation_fields[i][refernece][field]
+ mutation_fields[i][reference][__type__] == type
+}
+
+mutate_reference(type, field) {
+
+ mutation_fields[_][type][field]
+}
+
+mutate_argument(reference, field, value) {
+  mutation_arguments[_][reference][field] == value
+}
+
+
 ast_url = u {
   u := data.policy["com.styra.envoy.ingress"].rules.rules.ast_url
 }
@@ -53,21 +84,6 @@ graphql_document = g {
 
 graphql_document = g {
   g := input.parsed_query.query
-}
-
-check_type(type, field) {
-
- fields[i][refernece][field]
- fields[i][reference][__type__] == type
-}
-
-check_reference(type, field) {
-
- fields[_][type][field]
-}
-
-check_argument(reference, field, value) {
-  arguments[_][reference][field] == value
 }
 
 schema_types = schema_interfaces | schema_objects
@@ -126,8 +142,10 @@ schema_fields[v] {
      }}
 }
 
-arguments[v] {
+query_arguments[v] {
   [_,node] = walk(ast.definitions)
+  node.name.kind == "Name"
+  node.operation == ["query", "subscription"][_]
   count(node.arguments) > 0
   args := {field:value | 
     node.arguments[i].kind == "Argument"
@@ -138,10 +156,47 @@ arguments[v] {
   v := {node.name.value: args} 
 }
 
-fields[v] {
+mutation_arguments[v] {
+  [_,node] = walk(ast.definitions)
+  node.name.kind == "Name"
+  node.operation == "mutation"
+  count(node.arguments) > 0
+  args := {field:value | 
+    node.arguments[i].kind == "Argument"
+    value := node.arguments[j].value.value
+    field := node.arguments[j].name.value
+    # TODO: do not ignore value.kind
+    }
+  v := {node.name.value: args} 
+}
+
+query_fields[v] {
 
   [_,node] = walk(ast.definitions)
   node.name.kind == "Name"
+  node.operation == ["query", "subscription"][_]
+  node.kind == "OperationDefinition"
+  
+  node.kind == "Field"
+  sub := {name:{"__type__":get_type(node.name.value, name)} | 
+    node.selectionSet.selections[i].kind == "Field"
+    node.selectionSet.selections[i].name.kind == "Name"
+    name := node.selectionSet.selections[i].name.value
+    }
+  count(sub) > 0
+
+  x := json.patch(sub,  [
+    {"op": "add", "path": "/__type__", "value": get_type(node.name.value, "")}
+    ])
+  v := {node.name.value: x}
+}
+
+mutation_fields[v] {
+
+  [_,node] = walk(ast.definitions)
+  node.name.kind == "Name"
+  node.operation == "mutation"
+  node.kind == "OperationDefinition"
   
   node.kind == "Field"
   sub := {name:{"__type__":get_type(node.name.value, name)} | 
@@ -163,4 +218,3 @@ get_type(object, field) = t {
 } else = t {
   t := schema_fields[_][object].type
 }
-
