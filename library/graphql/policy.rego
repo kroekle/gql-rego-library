@@ -1,10 +1,14 @@
 package global.graphql
 
 import data.dataset as schema
-import data.policy["com.styra.envoy.ingress"].rules.rules.ast_url
 
 default graphql_document = {}
 
+default ast_url = "http://localhost:3333"
+
+ast_url = u {
+  u := data.policy["com.styra.envoy.ingress"].rules.rules.ast_url
+}
 
 body = b {
   not graphql_variables
@@ -132,7 +136,6 @@ arguments[v] {
     # TODO: do not ignore value.kind
     }
   v := {node.name.value: args} 
-  # ast
 }
 
 fields[v] {
@@ -148,7 +151,6 @@ fields[v] {
     }
   count(sub) > 0
 
-  # get_type("friends", "") ast
   x := json.patch(sub,  [
     {"op": "add", "path": "/__type__", "value": get_type(node.name.value, "")}
     ])
@@ -156,7 +158,6 @@ fields[v] {
 }
 
 get_type(object, field) = t {
-# schema_fields[_]["friends"]
   f := schema_fields[_][object]
   t := schema_types[_][f.type][field].type
 } else = t {
