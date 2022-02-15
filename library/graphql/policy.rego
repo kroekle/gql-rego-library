@@ -55,6 +55,7 @@ ast = a {
     "url": ast_url,
     "method": "POST",
     "body": body,
+    "cache": true,
     "headers": {"content-type":"application/json"}
   }
   res := http.send(req)
