@@ -6,11 +6,6 @@ default graphql_document = {}
 
 default ast_url = "http://localhost:3333"
 
-query_type(type, field) {
-
- query_fields[i][refernece][field]
- query_fields[i][reference][__type__] == type
-}
 
 query_reference(type, field) {
 
@@ -142,6 +137,40 @@ schema_fields[v] {
      }}
 }
 
+
+known_types[t] {
+  inline_fragments[_][t]
+}
+
+known_types[t] {
+  t := fields[_][_]["__type__"]
+}
+
+query_types[t] = properties {
+    t := known_types[_]
+    frag_props := {p | p := inline_fragments[_][t][_]}
+    field_props := {p | fields[_][p]["__type__"] = t}
+    print(field_props)
+    
+    properties := {p:{}|  c := frag_props | field_props; p := c[_]}
+}
+
+inline_fragments[v] = sub {
+
+  [_,node] = walk(ast.definitions)
+  
+  node.kind == "Field"
+  
+  sub := {type:names | 
+    node.selectionSet.selections[i].kind == "InlineFragment"
+    
+    names := [n | n := node.selectionSet.selections[i].selectionSet.selections[_].name.value]
+    type := node.selectionSet.selections[i].typeCondition.name.value
+    }
+  count(sub) > 0
+
+  v := node.name.value
+}
 
 query_arguments[v] {
   [_,node] = walk(ast.definitions)
