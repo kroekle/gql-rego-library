@@ -155,7 +155,7 @@ query_types[t] = properties {
     properties := {p:{}|  c := frag_props | field_props; p := c[_]}
 }
 
-inline_fragments[v] = sub {
+inline_fragments[sub] {
 
   [_,node] = walk(ast.definitions)
   
@@ -167,9 +167,6 @@ inline_fragments[v] = sub {
     names := [n | n := node.selectionSet.selections[i].selectionSet.selections[_].name.value]
     type := node.selectionSet.selections[i].typeCondition.name.value
     }
-  count(sub) > 0
-
-  v := node.name.value
 }
 
 query_arguments[v] {
