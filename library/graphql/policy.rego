@@ -170,9 +170,10 @@ inline_fragments[sub] {
 }
 
 query_arguments[v] {
-  [_,node] = walk(ast.definitions)
-  node.name.kind == "Name"
-  node.operation == ["query", "subscription"][_]
+  [_,q_node] = walk(ast.definitions)
+  q_node.operation == ["query", "subscription"][_]
+
+  [_,node] = walk(q_node)
   count(node.arguments) > 0
   args := {field:value | 
     node.arguments[i].kind == "Argument"
