@@ -1,6 +1,6 @@
 package global.graphql
 
-import data.dataset as schema
+import data.schema
 
 default graphql_document = {}
 
