@@ -153,7 +153,7 @@ known_types[t] {
 query_types[t] = properties {
     t := known_types[_]
     frag_props := {p | p := inline_fragments[_][t][_]}
-    field_props := {p | query_fields[_][p]["__type__"] = t}
+    field_props := {p | query_fields[_][i]["__type__"] = t; query_fields[_][i][p]}
     print(field_props)
     
     properties := {p:{}|  c := frag_props | field_props; p := c[_]}
