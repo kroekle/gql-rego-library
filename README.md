@@ -17,7 +17,7 @@ This library is intended to make writing Rego (OPA) rules more easy when working
   * These are functions (for now) that will check equality of an argument.  This is currently working off the references and would be more useful if it was changed to work off of types.  Using it would look something like `query_argument("hero", "id", 2001)`
 
 
-## Sample Useage
+## Sample Usage
 
 ```js
 allow {
