@@ -1,5 +1,5 @@
 package global.graphql.other
 
 get_something() = t {
-  t := "something
+  t := "something"
 }
