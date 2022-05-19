@@ -1,4 +1,4 @@
-package global.graphql
+package global.graphql.policy
 
 import data.dataset as schema
 
