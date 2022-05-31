@@ -1,4 +1,4 @@
-package global.graphql.policy
+package global.graphql
 
 import data.schema
 
