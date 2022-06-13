@@ -1,11 +1,8 @@
-package global.graphql
+package library.graphql
 
 import data.schema
 
 default graphql_document = {}
-
-default ast_url = "http://localhost:3333"
-
 
 query_reference(type, field) {
 
@@ -31,11 +28,6 @@ mutate_argument(reference, field, value) {
   mutation_arguments[_][reference][field] == value
 }
 
-
-ast_url = u {
-  u := data.policy["com.styra.envoy.ingress"].rules.rules.ast_url
-}
-
 body = b {
   not graphql_variables
   b := {"query": graphql_document}
@@ -45,17 +37,7 @@ body = b {
   b := {"query": graphql_document, "variables": graphql_variables}
 }
 
-ast = a {
-  req := {
-    "url": ast_url,
-    "method": "POST",
-    "body": body,
-    "cache": true,
-    "headers": {"content-type":"application/json"}
-  }
-  res := http.send(req)
-  a := res.body
-}
+ast = graphql.parse(graphql_document, data.schema)
 
 graphql_variables = v {
   v := input.attributes.request.http.headers.variables
