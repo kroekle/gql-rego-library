@@ -6,7 +6,7 @@ default graphql_document = {}
 
 query_reference(type, field) {
 
- uery_fields[_][type][field]
+ query_fields[_][type][field]
 }
 
 query_argument(reference, field, value) {
