@@ -1,4 +1,4 @@
-package library.graphql
+package global.graphql.util
 
 import data.schema
 
