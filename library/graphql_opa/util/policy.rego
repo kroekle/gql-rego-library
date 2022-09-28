@@ -6,6 +6,7 @@ import data.schema
 
 default graphql_document = {}
 
+
 query_reference(type, field) {
 
  query_fields[type][field]
@@ -22,6 +23,13 @@ mutate_reference(type, field) {
 
 mutate_argument(reference, field, value) {
   mutation_arguments[_][reference][field] == value
+}
+
+schema := s {
+  s := graphql.parse_schema(data.schema)
+}
+query := q {
+  q := graphql.parse_query(input.parsed_body.query)
 }
 
 ast = a {
