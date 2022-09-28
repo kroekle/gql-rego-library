@@ -2,8 +2,6 @@ package global.graphql_opa.util
 
 import future.keywords.in
 
-import data.schema
-
 default graphql_document = {}
 
 
