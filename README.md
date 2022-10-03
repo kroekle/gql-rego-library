@@ -2,6 +2,8 @@
 
 This library is intended to make writing Rego (OPA) rules more easy when working with GraphQL.  It will parse the document into AST using the Rego GraphQL [builtins](https://www.openpolicyagent.org/docs/latest/policy-reference/#graphql).  It also expects a schema (in a single text field) to be located at data.schema.gql, this is used to change the references into types in order to make better rules.
 
+This sample relies on OPA builtins that were added in v0.41.0, if using older versions of OPA, use the pre-builtin branch.
+
 ## Necessary items to make it work
 * The schema should to be stored in OPA at data.schema.gql
     * If the schema is in a different location then instead of using imports for the library use can use rules like the following to override
