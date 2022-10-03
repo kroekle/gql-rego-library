@@ -4,7 +4,6 @@ import future.keywords.in
 
 default graphql_document = {}
 
-
 schema := s {
   s := graphql.parse_schema(data.schema)
 }
@@ -82,15 +81,18 @@ query_arguments := a {
   a := {f:a | args[i][f]; a := {k:v| v := args[i][_][k]} }
 }
 
-mutation_arguments[v] {
-  count(mutation_definitions[i].SelectionSet[j].Arguments) > 0
-  name := mutation_definitions[i].SelectionSet[j].Name
+mutation_arguments := a {
+  args := [v |
+    count(mutation_definitions[i].SelectionSet[j].Arguments) > 0
+    name := mutation_definitions[i].SelectionSet[j].Name
 
-  args := {field:value | 
-    field := mutation_definitions[i].SelectionSet[j].Arguments[k].Name
-    value := mutation_definitions[i].SelectionSet[j].Arguments[k].Value.Raw
-    }
-  v := {name: args} 
+    args := {field:value | 
+      field := mutation_definitions[i].SelectionSet[j].Arguments[k].Name
+      value := mutation_definitions[i].SelectionSet[j].Arguments[k].Value.Raw
+      }
+    v := {name: args}
+  ] 
+  a := {f:a | args[i][f]; a := {k:v| v := args[i][_][k]} }
 }
 
 query_definitions = d {
@@ -123,17 +125,20 @@ query_fields := fs {
   fs := {f:a | flds[_][f]; a := {k:v| v := flds[_][f][_][k]} }
 }
 
-mutation_fields[v] {
+mutation_fields := fs {
+  flds := [v |
 
-  [_,node] = walk(mutation_definitions)
+    [_,node] = walk(mutation_definitions)
 
-  sub := {{name:type} | 
-    name := node.SelectionSet[i].Name
-    type := get_type_from_definition(node.SelectionSet[i].Definition)
-    }
-  count(sub) > 0
+    sub := {{name:type} | 
+      name := node.SelectionSet[i].Name
+      type := get_type_from_definition(node.SelectionSet[i].Definition)
+      }
+    count(sub) > 0
 
-  v := {node.Name: (sub | {{"__type__":get_type_from_definition(node.Definition)}})}
+    v := {node.Name: (sub | {{"__type__":get_type_from_definition(node.Definition)}})}
+  ]
+  fs := {f:a | flds[_][f]; a := {k:v| v := flds[_][f][_][k]} }
 }
 
 get_type_from_definition(definition) = t {
