@@ -109,19 +109,18 @@ mutation_definitions = d {
 }
 
 query_fields := fs {
-  fs := {f:a | query_fields_temp[_][f]; a := {k:v| v := query_fields_temp[_][f][_][k]} }
-}
+  flds := [v |
+    [_,node] = walk(query_definitions)
 
-query_fields_temp[v] {
-  [_,node] = walk(query_definitions)
+    sub := {{name:type} | 
+      name := node.SelectionSet[i].Name
+      type := get_type_from_definition(node.SelectionSet[i].Definition)
+      }
+    count(sub) > 0
 
-  sub := {{name:type} | 
-    name := node.SelectionSet[i].Name
-    type := get_type_from_definition(node.SelectionSet[i].Definition)
-    }
-  count(sub) > 0
-
-  v := {node.Name: (sub | {{"__type__":get_type_from_definition(node.Definition)}})}
+    v := {node.Name: (sub | {{"__type__":get_type_from_definition(node.Definition)}})}
+  ]
+  fs := {f:a | flds[_][f]; a := {k:v| v := flds[_][f][_][k]} }
 }
 
 mutation_fields[v] {
