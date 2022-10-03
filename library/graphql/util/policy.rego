@@ -1,246 +1,143 @@
 package global.graphql.util
 
-import data.schema
+import future.keywords.in
 
 default graphql_document = {}
 
-query_reference(type, field) {
-
- query_fields[_][type][field]
+schema := s {
+  s := graphql.parse_schema(data.schema.gql)
+}
+query := q {
+  q := graphql.parse_query(graphql_document)
 }
 
-query_argument(reference, field, value) {
-  query_arguments[_][reference][field] == value
+ast := a {
+  a := graphql.parse(graphql_document, data.schema.gql)
 }
 
-mutate_type(type, field) {
-
- mutation_fields[i][refernece][field]
- mutation_fields[i][reference][__type__] == type
-}
-
-mutate_reference(type, field) {
-
- mutation_fields[_][type][field]
-}
-
-mutate_argument(reference, field, value) {
-  mutation_arguments[_][reference][field] == value
-}
-
-body = b {
-  not graphql_variables
-  b := {"query": graphql_document}
-}
-
-body = b {
-  b := {"query": graphql_document, "variables": graphql_variables}
-}
-
-ast = graphql.parse(graphql_document, data.schema)
-
-graphql_variables = v {
-  v := input.attributes.request.http.headers.variables
-}
-
-graphql_variables = v {
-  v := input.parsed_query.variables
-}
-
-graphql_variables = v {
-  v := input.parsed_body.variables
-}
-
-graphql_document = g {
+graphql_document := g {
   g := input.parsed_body.query
 } 
 
-graphql_document = g {
+graphql_document := g {
   not input.parsed_body.query
   g := input.attributes.request.http.body
 }
 
-graphql_document = g {
+graphql_document := g {
   g := input.parsed_query.query
 }
-
-schema_types = schema_interfaces | schema_objects
-
-schema_interfaces[i] {
-  [_,node] = walk(schema.definitions)
-  node.kind == "InterfaceTypeDefinition"
-  
-  fs := {name:{"type":type, "kind": kind} | 
-    node.fields[i].kind == "FieldDefinition"
-    name := node.fields[i].name.value
-    type := node.fields[i].type.type.name.value
-    kind := node.fields[i].type.kind
-    
-    }
-    
-    i := {node.name.value: fs}
-}
-
-schema_objects[o] {
-  [_,node] = walk(schema.definitions)
-  node.kind == "ObjectTypeDefinition"
-  
-  fs := {name:{"type":type, "kind": kind} | 
-    node.fields[i].kind == "FieldDefinition"
-    name := node.fields[i].name.value
-    type := node.fields[i].type.type.name.value
-    kind := node.fields[i].type.kind
-    
-    }
-    
-    o := {node.name.value: fs}
-}
-
-schema_fields[v] {
-#non list types
-  [_,node] = walk(schema.definitions)
-  node.kind == "FieldDefinition"
-  
-
-   v := {
-     node.name.value: {
-       "type": node.type.name.value
-     }}
-}
-
-schema_fields[v] {
-#list types
-  [_,node] = walk(schema.definitions)
-  node.kind == "FieldDefinition"
-  
-   v := {
-     node.name.value: {
-       "type": node.type.type.name.value
-     }}
-}
-
 
 known_types[t] {
   inline_fragments[_][t]
 }
 
 known_types[t] {
-  t := query_fields[_][_]["__type__"]
+  t := query_fields[_][_]
 }
 
-known_types[t] {
-  t := query_fields[_][_][_]["__type__"]
-}
-
-query_types[t] = properties {
+query_types[t] := properties {
     t := known_types[_]
     frag_props := {p | p := inline_fragments[_][t][_]}
-    field_props := {p | query_fields[_][i]["__type__"] = t; query_fields[_][i][p]}
-    print(field_props)
+    field_props := {p | 
+      query_fields[_]["__type__"] = t
+      query_fields[_][p]
+      p != "__type__"}
+    # print(field_props)
     
     properties := {p:{}|  c := frag_props | field_props; p := c[_]}
 }
 
 inline_fragments[sub] {
-
-  [_,node] = walk(ast.definitions)
-  
-  node.kind == "Field"
-  
-  sub := {type:names | 
-    node.selectionSet.selections[i].kind == "InlineFragment"
-    
-    names := [n | n := node.selectionSet.selections[i].selectionSet.selections[_].name.value]
-    type := node.selectionSet.selections[i].typeCondition.name.value
-    }
+  [_,node] := walk(query_definitions)
+  node.TypeCondition
+  sub := {type:fields | 
+    type := node.TypeCondition
+    fields := [n | n := node.SelectionSet[_].Name]
+  }
 }
 
-query_arguments[v] {
-  [_,q_node] = walk(ast.definitions)
-  q_node.operation == ["query", "subscription"][_]
+query_arguments := a {
+  ast
+  args := [v |
+    count(query_definitions[i].SelectionSet[j].Arguments) > 0
+    name := query_definitions[i].SelectionSet[j].Name
 
-  [_,node] = walk(q_node)
-  count(node.arguments) > 0
-  args := {field:value | 
-    node.arguments[i].kind == "Argument"
-    value := node.arguments[j].value.value
-    field := node.arguments[j].name.value
-    # TODO: do not ignore value.kind
-    }
-  v := {node.name.value: args} 
+    args := {field:value | 
+      field := query_definitions[i].SelectionSet[j].Arguments[k].Name
+      value := query_definitions[i].SelectionSet[j].Arguments[k].Value.Raw
+      }
+    v := {name: args} 
+  ]
+  a := {f:a | args[i][f]; a := {k:v| v := args[i][_][k]} }
 }
 
-mutation_arguments[v] {
-  [_,node] = walk(ast.definitions)
-  node.name.kind == "Name"
-  node.operation == "mutation"
-  count(node.arguments) > 0
-  args := {field:value | 
-    node.arguments[i].kind == "Argument"
-    value := node.arguments[j].value.value
-    field := node.arguments[j].name.value
-    # TODO: do not ignore value.kind
-    }
-  v := {node.name.value: args} 
+mutation_arguments := a {
+  ast
+  args := [v |
+    count(mutation_definitions[i].SelectionSet[j].Arguments) > 0
+    name := mutation_definitions[i].SelectionSet[j].Name
+
+    args := {field:value | 
+      field := mutation_definitions[i].SelectionSet[j].Arguments[k].Name
+      value := mutation_definitions[i].SelectionSet[j].Arguments[k].Value.Raw
+      }
+    v := {name: args}
+  ] 
+  a := {f:a | args[i][f]; a := {k:v| v := args[i][_][k]} }
 }
 
 query_definitions = d {
-  d := [d | 
-    ast.definitions[i].kind == "OperationDefinition"
-    ast.definitions[i].operation == ["query", "subscription"][_]
-    d := ast.definitions[i]
+  ast
+  d := [o | 
+    ast[a].Operations[i].Operation in ["query", "subscription"]
+    o := ast[a].Operations[i]
     ]
 }
 
 mutation_definitions = d {
+  ast
   d := [d | 
-    ast.definitions[i].kind == "OperationDefinition"
-    ast.definitions[i].operation == "mutation"
-    d := ast.definitions[i]
+    ast[a].Operations[i].Operation == "mutation"
+    d := ast[a].Operations[i]
     ]
 }
 
-query_fields[v] {
+query_fields := fs {
+  ast
+  flds := [v |
+    [_,node] := walk(query_definitions)
 
-  [_,node] = walk(query_definitions)
-  node.kind == "Field"
-  node.name.kind == "Name"
-  
-  sub := {name:{"__type__":get_type(node.name.value, name)} | 
-    node.selectionSet.selections[i].kind == "Field"
-    node.selectionSet.selections[i].name.kind == "Name"
-    name := node.selectionSet.selections[i].name.value
-    }
-  count(sub) > 0
+    sub := {{name:type} | 
+      name := node.SelectionSet[i].Name
+      type := get_type_from_definition(node.SelectionSet[i].Definition)
+      }
+    count(sub) > 0
 
-  x := json.patch(sub,  [
-    {"op": "add", "path": "/__type__", "value": get_type(node.name.value, "")}
-    ])
-  v := {node.name.value: x}
+    v := {node.Name: (sub | {{"__type__":get_type_from_definition(node.Definition)}})}
+  ]
+  fs := {f:a | flds[_][f]; a := {k:v| v := flds[_][f][_][k]} }
 }
 
-mutation_fields[v] {
+mutation_fields := fs {
+  ast
+  flds := [v |
 
-  [_,node] = walk(mutation_definitions)
-  node.kind == "Field"
-  node.name.kind == "Name"
+    [_,node] := walk(mutation_definitions)
 
-  sub := {name:{"__type__":get_type(node.name.value, name)} | 
-    node.selectionSet.selections[i].kind == "Field"
-    node.selectionSet.selections[i].name.kind == "Name"
-    name := node.selectionSet.selections[i].name.value
-    }
-  count(sub) > 0
+    sub := {{name:type} | 
+      name := node.SelectionSet[i].Name
+      type := get_type_from_definition(node.SelectionSet[i].Definition)
+      }
+    count(sub) > 0
 
-  x := json.patch(sub,  [
-    {"op": "add", "path": "/__type__", "value": get_type(node.name.value, "")}
-    ])
-  v := {node.name.value: x}
+    v := {node.Name: (sub | {{"__type__":get_type_from_definition(node.Definition)}})}
+  ]
+  fs := {f:a | flds[_][f]; a := {k:v| v := flds[_][f][_][k]} }
 }
 
-get_type(object, field) = t {
-  f := schema_fields[_][object]
-  t := schema_types[_][f.type][field].type
-} else = t {
-  t := schema_fields[_][object].type
+get_type_from_definition(definition) := t {
+  t := definition.Type.Elem.NamedType
+} else := t {
+  t := definition.Type.NamedType
 }
