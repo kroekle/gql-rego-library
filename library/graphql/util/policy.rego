@@ -1,4 +1,4 @@
-package global.graphql_opa.util
+package global.graphql.util
 
 import future.keywords.in
 

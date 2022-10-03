@@ -7,7 +7,7 @@ This library is intended to make writing Rego (OPA) rules more easy when working
     * If the schema is in a different location then instead of using imports for the library use can use rules like the following to override
     ``` js
     query_types := qt {
-      qt := data.global.graphql_opa.util.query_types with data.schema.gql as data.myschema.myproperty
+      qt := data.global.graphql.util.query_types with data.schema.gql as data.myschema.myproperty
     }
     ...
     ```
@@ -33,6 +33,10 @@ This library is intended to make writing Rego (OPA) rules more easy when working
 ## Sample Usage
 
 ```js
+import data.global.graphql.util.query_types
+import data.global.graphql.util.query_fields
+import data.global.graphql.util.query_arguments
+
 allow {
   not restricted_field
   not restricted_row
