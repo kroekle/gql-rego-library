@@ -68,15 +68,18 @@ inline_fragments[sub] {
     }
 }
 
-query_arguments[v] {
-  count(query_definitions[i].SelectionSet[j].Arguments) > 0
-  name := query_definitions[i].SelectionSet[j].Name
+query_arguments := a {
+  args := [v |
+    count(query_definitions[i].SelectionSet[j].Arguments) > 0
+    name := query_definitions[i].SelectionSet[j].Name
 
-  args := {field:value | 
-    field := query_definitions[i].SelectionSet[j].Arguments[k].Name
-    value := query_definitions[i].SelectionSet[j].Arguments[k].Value.Raw
-    }
-  v := {name: args} 
+    args := {field:value | 
+      field := query_definitions[i].SelectionSet[j].Arguments[k].Name
+      value := query_definitions[i].SelectionSet[j].Arguments[k].Value.Raw
+      }
+    v := {name: args} 
+  ]
+  a := {f:a | args[i][f]; a := {k:v| v := args[i][_][k]} }
 }
 
 mutation_arguments[v] {
