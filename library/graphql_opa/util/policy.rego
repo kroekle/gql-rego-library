@@ -5,24 +5,6 @@ import future.keywords.in
 default graphql_document = {}
 
 
-query_reference(type, field) {
-
- query_fields[type][field]
-}
-
-query_argument(reference, field, value) {
-  query_arguments[_][reference][field] == value
-}
-
-mutate_reference(type, field) {
-
- mutation_fields[_][type][field]
-}
-
-mutate_argument(reference, field, value) {
-  mutation_arguments[_][reference][field] == value
-}
-
 schema := s {
   s := graphql.parse_schema(data.schema)
 }
@@ -57,17 +39,17 @@ known_types[t] {
 }
 
 known_types[t] {
-  t := query_fields[_][_][_][_]
+  t := query_fields[_][_]
 }
 
 query_types[t] = properties {
     t := known_types[_]
     frag_props := {p | p := inline_fragments[_][t][_]}
     field_props := {p | 
-      query_fields[i][j][_]["__type__"] = t
-      query_fields[i][j][_][p]
+      query_fields[_]["__type__"] = t
+      query_fields[_][p]
       p != "__type__"}
-    print(field_props)
+    # print(field_props)
     
     properties := {p:{}|  c := frag_props | field_props; p := c[_]}
 }
@@ -123,7 +105,11 @@ mutation_definitions = d {
     ]
 }
 
-query_fields[v] {
+query_fields := fs {
+  fs := {f:a | query_fields_temp[_][f]; a := {k:v| v := query_fields_temp[_][f][_][k]} }
+}
+
+query_fields_temp[v] {
   [_,node] = walk(query_definitions)
 
   sub := {{name:type} | 
