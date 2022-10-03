@@ -5,31 +5,26 @@ import future.keywords.in
 default graphql_document = {}
 
 schema := s {
-  s := graphql.parse_schema(data.schema)
+  s := graphql.parse_schema(data.schema.gql)
 }
 query := q {
-  q := graphql.parse_query(input.parsed_body.query)
+  q := graphql.parse_query(graphql_document)
 }
 
-ast = a {
-  not data.schema
-  a := [graphql.parse_query(graphql_document)]
+ast := a {
+  a := graphql.parse(graphql_document, data.schema.gql)
 }
 
-ast = a {
-  a := graphql.parse(graphql_document, data.schema)
-}
-
-graphql_document = g {
+graphql_document := g {
   g := input.parsed_body.query
 } 
 
-graphql_document = g {
+graphql_document := g {
   not input.parsed_body.query
   g := input.attributes.request.http.body
 }
 
-graphql_document = g {
+graphql_document := g {
   g := input.parsed_query.query
 }
 
@@ -41,7 +36,7 @@ known_types[t] {
   t := query_fields[_][_]
 }
 
-query_types[t] = properties {
+query_types[t] := properties {
     t := known_types[_]
     frag_props := {p | p := inline_fragments[_][t][_]}
     field_props := {p | 
@@ -54,15 +49,16 @@ query_types[t] = properties {
 }
 
 inline_fragments[sub] {
-    [_,node] = walk(query_definitions)
-    node.TypeCondition
-    sub := {type:fields | 
-      type := node.TypeCondition
-      fields := [n | n := node.SelectionSet[_].Name]
-    }
+  [_,node] := walk(query_definitions)
+  node.TypeCondition
+  sub := {type:fields | 
+    type := node.TypeCondition
+    fields := [n | n := node.SelectionSet[_].Name]
+  }
 }
 
 query_arguments := a {
+  ast
   args := [v |
     count(query_definitions[i].SelectionSet[j].Arguments) > 0
     name := query_definitions[i].SelectionSet[j].Name
@@ -77,6 +73,7 @@ query_arguments := a {
 }
 
 mutation_arguments := a {
+  ast
   args := [v |
     count(mutation_definitions[i].SelectionSet[j].Arguments) > 0
     name := mutation_definitions[i].SelectionSet[j].Name
@@ -94,11 +91,12 @@ query_definitions = d {
   ast
   d := [o | 
     ast[a].Operations[i].Operation in ["query", "subscription"]
-    o = ast[a].Operations[i]
+    o := ast[a].Operations[i]
     ]
 }
 
 mutation_definitions = d {
+  ast
   d := [d | 
     ast[a].Operations[i].Operation == "mutation"
     d := ast[a].Operations[i]
@@ -106,8 +104,9 @@ mutation_definitions = d {
 }
 
 query_fields := fs {
+  ast
   flds := [v |
-    [_,node] = walk(query_definitions)
+    [_,node] := walk(query_definitions)
 
     sub := {{name:type} | 
       name := node.SelectionSet[i].Name
@@ -121,9 +120,10 @@ query_fields := fs {
 }
 
 mutation_fields := fs {
+  ast
   flds := [v |
 
-    [_,node] = walk(mutation_definitions)
+    [_,node] := walk(mutation_definitions)
 
     sub := {{name:type} | 
       name := node.SelectionSet[i].Name
@@ -136,8 +136,8 @@ mutation_fields := fs {
   fs := {f:a | flds[_][f]; a := {k:v| v := flds[_][f][_][k]} }
 }
 
-get_type_from_definition(definition) = t {
+get_type_from_definition(definition) := t {
   t := definition.Type.Elem.NamedType
-} else = t {
+} else := t {
   t := definition.Type.NamedType
 }
