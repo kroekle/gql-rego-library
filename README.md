@@ -1,4 +1,4 @@
-# GraphQL/Rego Ribrary
+# GraphQL/Rego Library
 
 This library is intended to make writing Rego (OPA) rules more easy when working with GraphQL.  It will parse the document into AST using the Rego GraphQL [builtins](https://www.openpolicyagent.org/docs/latest/policy-reference/#graphql).  It also expects a schema (in a single text field) to be located at data.schema.gql, this is used to change the references into types in order to make better rules.
 
