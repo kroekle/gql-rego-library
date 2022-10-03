@@ -54,16 +54,11 @@ query_types[t] = properties {
 }
 
 inline_fragments[sub] {
-
-  [_,node] = walk(ast[_].definitions)
-  
-  node.kind == "Field"
-  
-  sub := {type:names | 
-    node.selectionSet.selections[i].kind == "InlineFragment"
-    
-    names := [n | n := node.selectionSet.selections[i].selectionSet.selections[_].name.value]
-    type := node.selectionSet.selections[i].typeCondition.name.value
+    [_,node] = walk(query_definitions)
+    node.TypeCondition
+    sub := {type:fields | 
+      type := node.TypeCondition
+      fields := [n | n := node.SelectionSet[_].Name]
     }
 }
 
